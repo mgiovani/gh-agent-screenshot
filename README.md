@@ -44,13 +44,13 @@ The extension auto-selects the matching prebuilt binary for your host OS and arc
 ### Upload images
 
 ```sh
-# Print markdown image links only (default, no GitHub write)
+# Print markdown image links only (default; still uploads to a git ref, just skips posting/editing)
 gh agent-screenshot upload a.png b.png --repo owner/name --issue 1 --print-only
 
 # Post images as a new comment
 gh agent-screenshot upload a.png b.png --repo owner/name --issue 1 --new-comment
 
-# Append images to an existing comment
+# Replace an existing comment's content with these images
 gh agent-screenshot upload a.png b.png --repo owner/name --issue 1 --update-comment <id>
 
 # Embed images in the issue/PR body
