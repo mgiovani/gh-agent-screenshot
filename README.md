@@ -2,6 +2,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](#supported-platforms)
 [![Built with Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](Cargo.toml)
+[![skills.sh](https://img.shields.io/badge/skills.sh-mgiovani%2Fgh--agent--screenshot-blueviolet)](https://skills.sh/mgiovani/gh-agent-screenshot)
 
 # gh-agent-screenshot
 
@@ -17,6 +18,9 @@ Your coding agent writes code, opens pull requests, and fixes bugs on its own. I
 
 ```sh
 gh extension install mgiovani/gh-agent-screenshot
+
+# Optional: install the agent skill so AI coding agents know how to use it
+npx skills add mgiovani/gh-agent-screenshot
 ```
 
 The extension auto-selects the matching prebuilt binary for your host OS and architecture from the latest GitHub Release.
@@ -76,11 +80,7 @@ The private-repo inline render (image visible in a browser without a raw token) 
 
 ## Agent Skill
 
-An agent skill is published so AI coding agents can learn how to use this extension:
-
-```sh
-gh skill install mgiovani/gh-agent-screenshot --all
-```
+An agent skill is published so AI coding agents can learn how to use this extension. Install it with `npx skills add mgiovani/gh-agent-screenshot` (see [Install](#install)) or browse it on [skills.sh](https://skills.sh/mgiovani/gh-agent-screenshot).
 
 The skill teaches agents all four write modes (`--print-only`, `--new-comment`, `--update-comment`, `--edit-body`) and the `prune` subcommand. See [`skills/gh-agent-screenshot/SKILL.md`](skills/gh-agent-screenshot/SKILL.md).
 
