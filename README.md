@@ -2,6 +2,10 @@
 
 **Your agent can open a pull request but it cannot drag a screenshot into it. Now it can.**
 
+![Before and after: an agent describing a screenshot in words, then showing it](docs/hero.png)
+
+*Before and after from [PR #1](https://github.com/mgiovani/gh-agent-screenshot/pull/1) on this repo. Robot photo by [Xu Haiwei](https://unsplash.com/@mrsunburnt) on [Unsplash](https://unsplash.com/photos/black-and-white-robot-illustration-fv1EFjgIb94).*
+
 [![gh extension](https://img.shields.io/badge/gh-extension-blue?logo=github)](https://cli.github.com/manual/gh_extension)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](#supported-platforms)
@@ -81,5 +85,7 @@ gh skill install mgiovani/gh-agent-screenshot --all
 The skill teaches agents all four write modes (`--print-only`, `--new-comment`, `--update-comment`, `--edit-body`) and the `prune` subcommand. See [`skills/gh-agent-screenshot/SKILL.md`](skills/gh-agent-screenshot/SKILL.md).
 
 ## Credits
+
+Hero photo by [Xu Haiwei](https://unsplash.com/@mrsunburnt) on [Unsplash](https://unsplash.com/photos/black-and-white-robot-illustration-fv1EFjgIb94).
 
 Licensed under the [MIT License](LICENSE).
