@@ -1,0 +1,29 @@
+[package]
+name = "gh-agent-screenshot"
+version = "0.1.0"
+edition = "2021"
+description = "Upload images to GitHub issues/PRs via the Git Data API — no S3, no third-party hosting"
+license = "MIT"
+repository = "https://github.com/mgiovani/gh-agent-screenshot"
+
+[[bin]]
+name = "gh-agent-screenshot"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "fs"] }
+futures = "0.3"
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde"] }
+
+[dev-dependencies]
+wiremock = "0.6"
+tokio = { version = "1", features = ["full"] }

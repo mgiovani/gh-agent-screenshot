@@ -1,0 +1,42 @@
+# Required repo configuration for the integration job:
+#   secrets.GH_TOKEN   — a PAT with repo + issues scope on the test private repo
+#   vars.GH_TEST_REPO  — owner/repo of the private test repository (e.g. mgiovani/gh-agent-screenshot-test)
+#   vars.GH_TEST_ISSUE — issue number to post test comments on
+# The `integration` job is a no-op on fork PRs and non-main pushes by design;
+# it only runs on direct pushes to main where secrets are available.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test --lib
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: check
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      secrets.GH_TOKEN != ''
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GH_TEST_REPO: ${{ vars.GH_TEST_REPO }}
+      GH_TEST_ISSUE: ${{ vars.GH_TEST_ISSUE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --test integration -- --include-ignored

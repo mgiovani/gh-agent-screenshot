@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.asset_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            os: macos-13
+            asset_name: gh-agent-screenshot-darwin-amd64
+            binary: gh-agent-screenshot
+          - target: aarch64-apple-darwin
+            os: macos-14
+            asset_name: gh-agent-screenshot-darwin-arm64
+            binary: gh-agent-screenshot
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+            asset_name: gh-agent-screenshot-linux-amd64
+            binary: gh-agent-screenshot
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-22.04-arm
+            asset_name: gh-agent-screenshot-linux-arm64
+            binary: gh-agent-screenshot
+          - target: x86_64-pc-windows-msvc
+            os: windows-2022
+            asset_name: gh-agent-screenshot-windows-amd64.exe
+            binary: gh-agent-screenshot.exe
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Stage binary (Unix)
+        if: runner.os != 'Windows'
+        run: cp target/${{ matrix.target }}/release/${{ matrix.binary }} ${{ matrix.asset_name }}
+
+      - name: Stage binary (Windows)
+        if: runner.os == 'Windows'
+        run: copy target\${{ matrix.target }}\release\${{ matrix.binary }} ${{ matrix.asset_name }}
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}
