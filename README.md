@@ -5,10 +5,12 @@
 
 # gh-agent-screenshot
 
+**Your agent can open a pull request but it cannot drag a screenshot into it. Now it can.**  
+
 ![Before and after: an agent describing a screenshot in words, then showing it](docs/hero.png)
 
 
-**Your agent can open a pull request but it cannot drag a screenshot into it. Now it can.**
+
 Your coding agent writes code, opens pull requests, and fixes bugs on its own. It still cannot do the one thing you do by reflex: drop a screenshot into a comment. GitHub only accepts images dragged into its web editor, and there is no public API for it. gh-agent-screenshot closes that gap. One command uploads an image to any issue or PR and embeds it inline, stored in your own repo through GitHub's Git Data API. No Imgur, no S3, no upload token to leak.
 
 ## Install
