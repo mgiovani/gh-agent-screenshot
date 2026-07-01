@@ -1,16 +1,20 @@
-[![gh extension](https://img.shields.io/badge/gh-extension-blue?logo=github)](https://cli.github.com/manual/gh_extension)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](#supported-platforms)
-[![Built with Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](Cargo.toml)
-[![skills.sh](https://img.shields.io/badge/skills.sh-mgiovani%2Fgh--agent--screenshot-blueviolet)](https://skills.sh/mgiovani/gh-agent-screenshot)
+<p align="center">
+  <img src="docs/logo.png" width="96" alt="gh-agent-screenshot logo">
+</p>
 
-# gh-agent-screenshot
+<h1 align="center">gh-agent-screenshot</h1>
 
-**Your agent can open a pull request but it cannot drag a screenshot into it. Now it can.**  
+<p align="center">
+  <a href="https://cli.github.com/manual/gh_extension"><img alt="gh extension" src="https://img.shields.io/badge/gh-extension-blue?logo=github"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg"></a>
+  <a href="#supported-platforms"><img alt="Platforms" src="https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey"></a>
+  <a href="Cargo.toml"><img alt="Built with Rust" src="https://img.shields.io/badge/built%20with-Rust-orange?logo=rust"></a>
+  <a href="https://skills.sh/mgiovani/gh-agent-screenshot"><img alt="skills.sh" src="https://img.shields.io/badge/skills.sh-mgiovani%2Fgh--agent--screenshot-blueviolet"></a>
+</p>
+
+---
 
 ![Before and after: an agent describing a screenshot in words, then showing it](docs/hero.png)
-
-
 
 Your coding agent writes code, opens pull requests, and fixes bugs on its own. It still cannot do the one thing you do by reflex: drop a screenshot into a comment. GitHub only accepts images dragged into its web editor, and there is no public API for it. gh-agent-screenshot closes that gap. One command uploads an image to any issue or PR and embeds it inline, stored in your own repo through GitHub's Git Data API. No Imgur, no S3, no upload token to leak.
 
@@ -85,7 +89,5 @@ An agent skill is published so AI coding agents can learn how to use this extens
 The skill teaches agents all four write modes (`--print-only`, `--new-comment`, `--update-comment`, `--edit-body`) and the `prune` subcommand. See [`skills/gh-agent-screenshot/SKILL.md`](skills/gh-agent-screenshot/SKILL.md).
 
 ## Credits
-
-Hero photo by [Xu Haiwei](https://unsplash.com/@mrsunburnt) on [Unsplash](https://unsplash.com/photos/black-and-white-robot-illustration-fv1EFjgIb94).
 
 Licensed under the [MIT License](LICENSE).
