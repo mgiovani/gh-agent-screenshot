@@ -1,16 +1,14 @@
-# gh-agent-screenshot
-
-**Your agent can open a pull request but it cannot drag a screenshot into it. Now it can.**
-
-![Before and after: an agent describing a screenshot in words, then showing it](docs/hero.png)
-
-*Before and after from [PR #1](https://github.com/mgiovani/gh-agent-screenshot/pull/1) on this repo. Robot photo by [Xu Haiwei](https://unsplash.com/@mrsunburnt) on [Unsplash](https://unsplash.com/photos/black-and-white-robot-illustration-fv1EFjgIb94).*
-
 [![gh extension](https://img.shields.io/badge/gh-extension-blue?logo=github)](https://cli.github.com/manual/gh_extension)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](#supported-platforms)
 [![Built with Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](Cargo.toml)
 
+# gh-agent-screenshot
+
+![Before and after: an agent describing a screenshot in words, then showing it](docs/hero.png)
+
+
+**Your agent can open a pull request but it cannot drag a screenshot into it. Now it can.**
 Your coding agent writes code, opens pull requests, and fixes bugs on its own. It still cannot do the one thing you do by reflex: drop a screenshot into a comment. GitHub only accepts images dragged into its web editor, and there is no public API for it. gh-agent-screenshot closes that gap. One command uploads an image to any issue or PR and embeds it inline, stored in your own repo through GitHub's Git Data API. No Imgur, no S3, no upload token to leak.
 
 ## Install
