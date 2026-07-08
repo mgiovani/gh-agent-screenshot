@@ -6,7 +6,7 @@ fail() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
 grep -q "^name:" skills/gh-agent-screenshot/SKILL.md && pass "name field" || fail "name field"
 grep -q "^description:" skills/gh-agent-screenshot/SKILL.md && pass "description field" || fail "description field"
 grep -iEq "screen.capture|take.a.screenshot|screencap" skills/gh-agent-screenshot/SKILL.md && fail "capture wording" || pass "no capture wording"
-for flag in --print-only --new-comment --update-comment --edit-body; do
+for flag in --print-only --new-comment --update-comment --edit-body --overwrite; do
   grep -q -- "$flag" skills/gh-agent-screenshot/SKILL.md && pass "$flag" || fail "$flag missing"
 done
 for flag in --dry-run --confirm --older-than-days; do

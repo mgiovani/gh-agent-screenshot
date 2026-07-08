@@ -41,6 +41,7 @@ pub struct WriteModeArgs {
 
 #[derive(Args)]
 pub struct UploadArgs {
+    #[arg(required = true)]
     pub files: Vec<std::path::PathBuf>,
     #[arg(long)]
     pub repo: String,
@@ -48,6 +49,9 @@ pub struct UploadArgs {
     pub target: TargetArgs,
     #[command(flatten)]
     pub write_mode_args: WriteModeArgs,
+    /// Replace the existing body/comment instead of appending to it.
+    #[arg(long)]
+    pub overwrite: bool,
 }
 
 #[derive(Args)]
@@ -97,15 +101,31 @@ impl UploadArgs {
 
     pub fn write_mode(&self) -> WriteMode {
         let w = &self.write_mode_args;
-        if w.new_comment {
+        if w.print_only {
+            WriteMode::PrintOnly
+        } else if w.new_comment {
             WriteMode::NewComment
         } else if let Some(id) = w.update_comment {
             WriteMode::UpdateComment(id)
-        } else if w.edit_body {
-            WriteMode::EditBody
         } else {
-            WriteMode::PrintOnly
+            // --edit-body and the no-flag default both land here: append to the body.
+            WriteMode::EditBody
         }
+    }
+
+    pub fn validate_overwrite(&self) -> crate::error::Result<()> {
+        if self.overwrite
+            && matches!(
+                self.write_mode(),
+                WriteMode::PrintOnly | WriteMode::NewComment
+            )
+        {
+            return Err(crate::error::Error::ApiError {
+                status: 0,
+                message: "--overwrite only applies to --edit-body / --update-comment or the default body append".into(),
+            });
+        }
+        Ok(())
     }
 
     pub fn split_repo(&self) -> crate::error::Result<(String, String)> {
@@ -140,9 +160,9 @@ mod tests {
     }
 
     #[test]
-    fn write_mode_defaults_to_print_only() {
+    fn write_mode_defaults_to_edit_body() {
         let args = parse_upload(&["a.png", "--repo", "o/r", "--issue", "1"]).unwrap();
-        assert_eq!(args.write_mode(), WriteMode::PrintOnly);
+        assert_eq!(args.write_mode(), WriteMode::EditBody);
     }
 
     #[test]
@@ -203,5 +223,89 @@ mod tests {
         let args =
             parse_upload(&["a.png", "b.png", "c.png", "--repo", "o/r", "--issue", "1"]).unwrap();
         assert_eq!(args.files.len(), 3);
+    }
+
+    #[test]
+    fn zero_files_rejected() {
+        let result = parse_upload(&["--repo", "o/r", "--issue", "1"]);
+        assert!(
+            result.is_err(),
+            "at least one file must be required, otherwise the default write mode appends \
+             empty markdown to the issue/PR body for no reason"
+        );
+    }
+
+    #[test]
+    fn overwrite_flag_parses() {
+        let args =
+            parse_upload(&["a.png", "--repo", "o/r", "--issue", "1", "--overwrite"]).unwrap();
+        assert!(args.overwrite);
+        assert!(
+            !parse_upload(&["a.png", "--repo", "o/r", "--issue", "1"])
+                .unwrap()
+                .overwrite
+        );
+    }
+
+    #[test]
+    fn validate_overwrite_rejected_with_print_only() {
+        let args = parse_upload(&[
+            "a.png",
+            "--repo",
+            "o/r",
+            "--issue",
+            "1",
+            "--print-only",
+            "--overwrite",
+        ])
+        .unwrap();
+        assert!(args.validate_overwrite().is_err());
+    }
+
+    #[test]
+    fn validate_overwrite_rejected_with_new_comment() {
+        let args = parse_upload(&[
+            "a.png",
+            "--repo",
+            "o/r",
+            "--issue",
+            "1",
+            "--new-comment",
+            "--overwrite",
+        ])
+        .unwrap();
+        assert!(args.validate_overwrite().is_err());
+    }
+
+    #[test]
+    fn validate_overwrite_allowed_with_edit_body_and_default() {
+        let args =
+            parse_upload(&["a.png", "--repo", "o/r", "--issue", "1", "--overwrite"]).unwrap();
+        assert!(args.validate_overwrite().is_ok());
+
+        let args = parse_upload(&[
+            "a.png",
+            "--repo",
+            "o/r",
+            "--issue",
+            "1",
+            "--edit-body",
+            "--overwrite",
+        ])
+        .unwrap();
+        assert!(args.validate_overwrite().is_ok());
+
+        let args = parse_upload(&[
+            "a.png",
+            "--repo",
+            "o/r",
+            "--issue",
+            "1",
+            "--update-comment",
+            "5",
+            "--overwrite",
+        ])
+        .unwrap();
+        assert!(args.validate_overwrite().is_ok());
     }
 }

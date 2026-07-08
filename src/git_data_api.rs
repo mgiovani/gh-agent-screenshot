@@ -538,6 +538,120 @@ impl GitHubClient {
         Self::check_response(resp).await?;
         Ok(())
     }
+
+    pub async fn get_issue_body(
+        &self,
+        owner: &str,
+        repo: &str,
+        issue_number: u32,
+    ) -> Result<String> {
+        #[derive(Deserialize)]
+        struct Resp {
+            body: Option<String>,
+        }
+        let resp = self
+            .http
+            .get(format!(
+                "{}/repos/{}/{}/issues/{}",
+                self.base_url, owner, repo, issue_number
+            ))
+            .headers(self.auth_headers())
+            .send()
+            .await?;
+        let resp = Self::check_response(resp).await?;
+        let r: Resp = resp.json().await?;
+        Ok(r.body.unwrap_or_default())
+    }
+
+    pub async fn get_pr_body(&self, owner: &str, repo: &str, pr_number: u32) -> Result<String> {
+        #[derive(Deserialize)]
+        struct Resp {
+            body: Option<String>,
+        }
+        let resp = self
+            .http
+            .get(format!(
+                "{}/repos/{}/{}/pulls/{}",
+                self.base_url, owner, repo, pr_number
+            ))
+            .headers(self.auth_headers())
+            .send()
+            .await?;
+        let resp = Self::check_response(resp).await?;
+        let r: Resp = resp.json().await?;
+        Ok(r.body.unwrap_or_default())
+    }
+
+    pub async fn get_comment_body(
+        &self,
+        owner: &str,
+        repo: &str,
+        comment_id: u64,
+    ) -> Result<String> {
+        #[derive(Deserialize)]
+        struct Resp {
+            body: Option<String>,
+        }
+        let resp = self
+            .http
+            .get(format!(
+                "{}/repos/{}/{}/issues/comments/{}",
+                self.base_url, owner, repo, comment_id
+            ))
+            .headers(self.auth_headers())
+            .send()
+            .await?;
+        let resp = Self::check_response(resp).await?;
+        let r: Resp = resp.json().await?;
+        Ok(r.body.unwrap_or_default())
+    }
+
+    // ponytail: read-then-PATCH is a TOCTOU race under concurrent edits; acceptable for a screenshot tool.
+
+    pub async fn append_issue_body(
+        &self,
+        owner: &str,
+        repo: &str,
+        issue_number: u32,
+        addition: &str,
+    ) -> Result<()> {
+        let existing = self.get_issue_body(owner, repo, issue_number).await?;
+        self.patch_issue_body(owner, repo, issue_number, &append_body(&existing, addition))
+            .await
+    }
+
+    pub async fn append_pr_body(
+        &self,
+        owner: &str,
+        repo: &str,
+        pr_number: u32,
+        addition: &str,
+    ) -> Result<()> {
+        let existing = self.get_pr_body(owner, repo, pr_number).await?;
+        self.patch_pr_body(owner, repo, pr_number, &append_body(&existing, addition))
+            .await
+    }
+
+    pub async fn append_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        comment_id: u64,
+        addition: &str,
+    ) -> Result<()> {
+        let existing = self.get_comment_body(owner, repo, comment_id).await?;
+        self.update_comment(owner, repo, comment_id, &append_body(&existing, addition))
+            .await
+    }
+}
+
+/// Append `addition` after `existing`, blank-line separated. Empty existing → just addition.
+pub fn append_body(existing: &str, addition: &str) -> String {
+    if existing.trim().is_empty() {
+        addition.to_string()
+    } else {
+        format!("{}\n\n{}", existing.trim_end(), addition)
+    }
 }
 
 pub struct TreeEntry {
@@ -1059,5 +1173,137 @@ mod tests {
             .await
             .unwrap_err();
         assert!(matches!(err, Error::ApiError { status: 404, .. }));
+    }
+
+    // ── append_body / append_* ──────────────────────────────────────────────
+
+    #[test]
+    fn append_body_empty_existing_returns_addition_only() {
+        assert_eq!(append_body("", "new"), "new");
+        assert_eq!(append_body("   \n  ", "new"), "new");
+    }
+
+    #[test]
+    fn append_body_non_empty_joins_with_blank_line() {
+        assert_eq!(append_body("old", "new"), "old\n\nnew");
+        assert_eq!(append_body("old\n", "new"), "old\n\nnew");
+    }
+
+    #[tokio::test]
+    async fn get_issue_body_returns_empty_string_on_null_body() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/repos/o/r/issues/42"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({"number": 42, "body": null})),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+        let body = client(&server).get_issue_body("o", "r", 42).await.unwrap();
+        assert_eq!(body, "");
+    }
+
+    #[tokio::test]
+    async fn get_pr_body_returns_empty_string_on_null_body() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/repos/o/r/pulls/7"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({"number": 7, "body": null})),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+        let body = client(&server).get_pr_body("o", "r", 7).await.unwrap();
+        assert_eq!(body, "");
+    }
+
+    #[tokio::test]
+    async fn get_comment_body_returns_empty_string_on_null_body() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/repos/o/r/issues/comments/99"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"id": 99, "body": null})))
+            .expect(1)
+            .mount(&server)
+            .await;
+        let body = client(&server)
+            .get_comment_body("o", "r", 99)
+            .await
+            .unwrap();
+        assert_eq!(body, "");
+    }
+
+    #[tokio::test]
+    async fn append_issue_body_gets_then_patches_joined_body() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/repos/o/r/issues/42"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({"number": 42, "body": "old"})),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("PATCH"))
+            .and(path("/repos/o/r/issues/42"))
+            .and(wiremock::matchers::body_json(json!({"body": "old\n\nnew"})))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"number": 42})))
+            .expect(1)
+            .mount(&server)
+            .await;
+        client(&server)
+            .append_issue_body("o", "r", 42, "new")
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn append_pr_body_gets_then_patches_joined_body() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/repos/o/r/pulls/7"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({"number": 7, "body": "old"})),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("PATCH"))
+            .and(path("/repos/o/r/pulls/7"))
+            .and(wiremock::matchers::body_json(json!({"body": "old\n\nnew"})))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"number": 7})))
+            .expect(1)
+            .mount(&server)
+            .await;
+        client(&server)
+            .append_pr_body("o", "r", 7, "new")
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn append_comment_gets_then_patches_joined_body() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/repos/o/r/issues/comments/99"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({"id": 99, "body": "old"})),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("PATCH"))
+            .and(path("/repos/o/r/issues/comments/99"))
+            .and(wiremock::matchers::body_json(json!({"body": "old\n\nnew"})))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"id": 99})))
+            .expect(1)
+            .mount(&server)
+            .await;
+        client(&server)
+            .append_comment("o", "r", 99, "new")
+            .await
+            .unwrap();
     }
 }

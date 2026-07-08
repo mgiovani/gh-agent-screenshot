@@ -27,6 +27,8 @@ async fn run() -> Result<()> {
 }
 
 async fn upload_cmd(args: gh_agent_screenshot::cli::UploadArgs) -> Result<()> {
+    args.validate_overwrite()?;
+
     for path in &args.files {
         if !path.is_file() {
             return Err(Error::FileNotFound {
@@ -52,16 +54,32 @@ async fn upload_cmd(args: gh_agent_screenshot::cli::UploadArgs) -> Result<()> {
             println!("{}", id);
         }
         WriteMode::UpdateComment(comment_id) => {
-            client
-                .update_comment(&owner, &repo, comment_id, &markdown)
-                .await?;
+            if args.overwrite {
+                client
+                    .update_comment(&owner, &repo, comment_id, &markdown)
+                    .await?;
+            } else {
+                client
+                    .append_comment(&owner, &repo, comment_id, &markdown)
+                    .await?;
+            }
         }
         WriteMode::EditBody => match args.target() {
             upload::Target::Issue(n) => {
-                client.patch_issue_body(&owner, &repo, n, &markdown).await?;
+                if args.overwrite {
+                    client.patch_issue_body(&owner, &repo, n, &markdown).await?;
+                } else {
+                    client
+                        .append_issue_body(&owner, &repo, n, &markdown)
+                        .await?;
+                }
             }
             upload::Target::Pr(n) => {
-                client.patch_pr_body(&owner, &repo, n, &markdown).await?;
+                if args.overwrite {
+                    client.patch_pr_body(&owner, &repo, n, &markdown).await?;
+                } else {
+                    client.append_pr_body(&owner, &repo, n, &markdown).await?;
+                }
             }
         },
     }
