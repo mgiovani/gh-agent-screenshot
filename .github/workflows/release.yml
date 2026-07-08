@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           - target: x86_64-apple-darwin
-            os: macos-13
+            os: macos-14
             asset_name: gh-agent-screenshot-darwin-amd64
             binary: gh-agent-screenshot
           - target: aarch64-apple-darwin
