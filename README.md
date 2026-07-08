@@ -45,7 +45,7 @@ The extension auto-selects the matching prebuilt binary for your host OS and arc
 # Append images to the issue/PR body (default, no flag needed)
 gh agent-screenshot upload a.png b.png --repo owner/name --pr 42
 
-# Print markdown image links only, no GitHub write at all
+# Print markdown image links only; still uploads to a git ref, just skips posting/editing
 gh agent-screenshot upload a.png b.png --repo owner/name --issue 1 --print-only
 
 # Post images as a new comment
