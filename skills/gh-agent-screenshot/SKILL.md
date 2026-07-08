@@ -28,20 +28,16 @@ Each upload creates a blob, assembles a tree and commit, and pushes to a `refs/u
 
 Upload one or more image files to a GitHub issue or PR. Exactly one of `--issue` / `--pr` is required. `--repo owner/name` is always required.
 
+**Safe by default: no write mode replaces existing content unless you pass `--overwrite`.** Appending is a read-then-write (GET the current body, join, PATCH), not an atomic merge — two uploads racing against the same issue/PR/comment at the same instant can still clobber each other.
+
 ### Write modes
 
-#### `--print-only` (default — no GitHub write)
-Prints markdown image links to stdout without posting anything to GitHub.
+#### Default (no flag) or `--edit-body`
+Appends the images to the issue or PR description (body), after whatever text is already there. This is the default — no flag needed.
 ```sh
-gh agent-screenshot upload screenshot.png --repo owner/name --issue 42 --print-only
-# or simply (--print-only is the default when no write mode is given)
-gh agent-screenshot upload screenshot.png --repo owner/name --issue 42
-```
-
-#### `--new-comment`
-Posts the images as a new comment on the issue or PR.
-```sh
-gh agent-screenshot upload before.png after.png --repo owner/name --pr 7 --new-comment
+gh agent-screenshot upload arch.png --repo owner/name --pr 42
+# equivalent, explicit form:
+gh agent-screenshot upload arch.png --repo owner/name --pr 42 --edit-body
 ```
 
 #### `--update-comment <id>`
@@ -50,10 +46,22 @@ Appends the images to an existing comment identified by its comment ID.
 gh agent-screenshot upload diagram.png --repo owner/name --issue 10 --update-comment 1234567
 ```
 
-#### `--edit-body`
-Embeds the images in the issue or PR description (body) itself.
+#### `--new-comment`
+Posts the images as a new comment on the issue or PR.
 ```sh
-gh agent-screenshot upload arch.png --repo owner/name --pr 42 --edit-body
+gh agent-screenshot upload before.png after.png --repo owner/name --pr 7 --new-comment
+```
+
+#### `--print-only`
+Prints markdown image links to stdout without posting anything to GitHub.
+```sh
+gh agent-screenshot upload screenshot.png --repo owner/name --issue 42 --print-only
+```
+
+#### `--overwrite`
+Modifier for the default body-append, `--edit-body`, or `--update-comment`: replaces the existing body/comment instead of appending to it. Rejected with `--print-only` or `--new-comment`, since neither touches existing content.
+```sh
+gh agent-screenshot upload arch.png --repo owner/name --pr 42 --overwrite
 ```
 
 > `--issue` and `--pr` are mutually exclusive; exactly one is required.
