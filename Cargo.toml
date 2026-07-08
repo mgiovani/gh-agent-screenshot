@@ -1,6 +1,6 @@
 [package]
 name = "gh-agent-screenshot"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Upload images to GitHub issues and PRs via the Git Data API. No S3, no third-party hosting."
 license = "MIT"
