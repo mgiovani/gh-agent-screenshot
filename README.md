@@ -19,13 +19,23 @@ Your coding agent writes code, opens pull requests, and fixes bugs on its own. I
 ## Install
 
 ```sh
-gh extension install mgiovani/gh-agent-screenshot
+gh extension install mgiovani/gh-agent-screenshot --pin v0.2.1
 
 # Optional: install the agent skill so AI coding agents know how to use it
 npx skills add mgiovani/gh-agent-screenshot
 ```
 
-The extension auto-selects the matching prebuilt binary for your host OS and architecture from the latest GitHub Release.
+The extension auto-selects the matching prebuilt binary for your host OS and architecture from the pinned GitHub Release. Pinning is recommended: the binary runs with your `gh` credentials, so upgrades should be a deliberate act (re-run the command with a newer tag), not an automatic one.
+
+### Verifying the binary
+
+Every release binary carries a [build provenance attestation](https://docs.github.com/actions/security-guides/using-artifact-attestations) tying it to the exact commit and workflow that produced it:
+
+```sh
+gh attestation verify \
+  ~/.local/share/gh/extensions/gh-agent-screenshot/gh-agent-screenshot \
+  --repo mgiovani/gh-agent-screenshot
+```
 
 ## Supported Platforms
 
