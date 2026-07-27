@@ -4,7 +4,7 @@ description: Use when asked to attach a screenshot or image to a GitHub issue or
 license: MIT
 metadata:
   author: mgiovani
-  version: "0.1.0"
+  version: "0.2.1"
 ---
 
 ## What It Is
@@ -15,10 +15,12 @@ Each upload creates a blob, assembles a tree and commit, and pushes to a `refs/u
 
 ## Prerequisites
 
-1. Install the extension:
+1. Install the extension, pinned to a released tag (never install unpinned — the
+   binary inherits your `gh` token):
    ```sh
-   gh extension install mgiovani/gh-agent-screenshot
+   gh extension install mgiovani/gh-agent-screenshot --pin v0.2.1
    ```
+   Upgrading is deliberate: re-run the command with a newer tag.
 2. Authenticate `gh` (the extension inherits the token chain):
    ```sh
    gh auth login
